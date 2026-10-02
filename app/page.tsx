@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 type FlightStatus = 'On time' | 'Boarding' | 'Delayed' | 'Landed'
+type FilterStatus = 'All flights' | FlightStatus
 
 type Flight = {
   id: string
@@ -45,6 +46,8 @@ const flights: Flight[] = [
 ]
 
 const normalizeSearch = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '')
+const filterOptions: FilterStatus[] = ['All flights', 'On time', 'Boarding', 'Delayed', 'Landed']
+const isFilterStatus = (value: unknown): value is FilterStatus => typeof value === 'string' && filterOptions.includes(value as FilterStatus)
 
 const statusTone: Record<FlightStatus, string> = {
   'On time': 'status-on-time', Boarding: 'status-boarding', Delayed: 'status-delayed', Landed: 'status-landed',
@@ -93,8 +96,11 @@ export default function Page() {
       <section className="dashboard" aria-label="Flight tracker dashboard">
         <div className="dashboard-toolbar">
           <div className="search-wrap"><Search aria-hidden="true" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search flight, airline, or airport" aria-label="Search flight, airline, or airport" /></div>
-          <ToggleGroup type="single" value={status} onValueChange={(value) => value && setStatus(value)} className="status-filters" aria-label="Filter by flight status">
-            {['All flights', 'On time', 'Boarding', 'Delayed', 'Landed'].map((item) => <ToggleGroupItem key={item} value={item}>{item}</ToggleGroupItem>)}
+          <ToggleGroup type="single" value={status} onValueChange={(value) => {
+            const nextStatus = Array.isArray(value) ? value[0] : value
+            if (isFilterStatus(nextStatus)) setStatus(nextStatus)
+          }} className="status-filters" aria-label="Filter by flight status">
+            {filterOptions.map((item) => <ToggleGroupItem key={item} value={item}>{item}</ToggleGroupItem>)}
           </ToggleGroup>
         </div>
 
@@ -135,7 +141,7 @@ export default function Page() {
         </> : <Card className="no-results-panel"><CardContent><Radio aria-hidden="true" /><strong>No flights match these filters.</strong><span>Clear the search or choose another status to restore the route view.</span><Button variant="outline" size="sm" onClick={clearFilters}><RotateCcw data-icon="inline-start" />Clear filters</Button></CardContent></Card>}
       </section>
 
-      <section className="about-section" id="about"><div className="section-kicker">ABOUT SKYTRACK</div><div><h2>A calmer way to follow the sky.</h2><p>SkyTrack is a Handshake first-website project exploring how flight information can feel precise, legible, and human. All schedules, routes, and positions shown here are simulated demo data — this is not live aviation information.</p></div></section>
+      <section className="about-section" id="about"><div className="section-kicker">ABOUT SKYTRACK</div><div><h2>A calmer way to follow the sky.</h2><p>SkyTrack is a Handshake first-website project exploring how flight information can feel precise, legible, and human. All schedules, routes, and positions shown here are simulated demo data — this is not live aviation information.</p><a className="source-link" href="https://github.com/Theja4/skytrack" target="_blank" rel="noreferrer">View source <ChevronRight aria-hidden="true" /></a></div></section>
       <footer><span>SKYTRACK / FLIGHT MONITORING</span><span>BUILT FOR CLARITY · <a href="#about">ABOUT</a></span></footer>
     </main>
   )
